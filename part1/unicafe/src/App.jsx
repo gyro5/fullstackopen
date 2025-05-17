@@ -1,35 +1,85 @@
 import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
 
-function App() {
-  const [count, setCount] = useState(0)
+const Header = ({title}) => (
+  <h1>{title}</h1>
+);
+
+const Button = ({stat}) => (
+  <button onClick={stat.setter}>{stat.label}</button>
+);
+
+const FeedbackBoard = ({stats}) => (
+  <div>
+    <Header title={"give feedback"} />
+    {stats.map((s) => (<Button stat={s} key={s.label}/>))}
+  </div>
+);
+
+const Stat = ({label, data}) => (
+  <p>{label} {data}</p>
+);
+
+const Statistics = ({stats}) => {
+  const totalCount = stats.map((s) => s.data).reduce((accum, curr) => accum + curr, 0);
+
+  const avg = stats.map((s) => s.data * s.score).reduce((accum, curr) => accum + curr, 0) / totalCount;
+
+  const positve = stats[0].data / totalCount * 100;
+
+  if (totalCount > 0) {
+    return (
+      <div>
+        <Header title={"statistics"} />
+        {stats.map((s) => (<Stat label={s.label} data={s.data} key={s.label} />))}
+        <Stat label={"all"} data={totalCount} />
+        <Stat label={"average"} data={avg} />
+        <Stat label={"positive"} data={(positve) + " %"} />
+      </div>
+    );
+  }
+  else {
+    return (
+      <div>
+        <Header title={"statistics"} />
+        <p>No feedback given</p>
+      </div>
+    )
+  }
+};
+
+const App = () => {
+  // save clicks of each button to its own state
+  const [good, setGood] = useState(0);
+  const [neutral, setNeutral] = useState(0);
+  const [bad, setBad] = useState(0);
+
+  const stats = [
+    {
+      label: "good",
+      data: good,
+      score: 1,
+      setter: () => setGood(good + 1),
+    },
+    {
+      label: "neutral",
+      data: neutral,
+      score: 0,
+      setter: () => setNeutral(neutral + 1),
+    },
+    {
+      label: "bad",
+      data: bad,
+      score: -1,
+      setter: () => setBad(bad + 1),
+    }
+  ];
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
-}
+    <div>
+      <FeedbackBoard stats={stats} />
+      <Statistics stats={stats} />
+    </div>
+  );
+};
 
-export default App
+export default App;

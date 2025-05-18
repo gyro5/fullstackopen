@@ -4,19 +4,22 @@ const Header = ({title}) => (
   <h1>{title}</h1>
 );
 
-const Button = ({stat}) => (
-  <button onClick={stat.setter}>{stat.label}</button>
+const Button = ({onClick, text}) => (
+  <button onClick={onClick}>{text}</button>
 );
 
 const FeedbackBoard = ({stats}) => (
   <div>
     <Header title={"give feedback"} />
-    {stats.map((s) => (<Button stat={s} key={s.label}/>))}
+    {stats.map((s) => (<Button onClick={s.setter} text={s.label} key={s.label}/>))}
   </div>
 );
 
-const Stat = ({label, data}) => (
-  <p>{label} {data}</p>
+const StatisticLine = ({text, value}) => (
+  <tr>
+    <td>{text}</td>
+    <td>{value}</td>
+  </tr>
 );
 
 const Statistics = ({stats}) => {
@@ -30,10 +33,16 @@ const Statistics = ({stats}) => {
     return (
       <div>
         <Header title={"statistics"} />
-        {stats.map((s) => (<Stat label={s.label} data={s.data} key={s.label} />))}
-        <Stat label={"all"} data={totalCount} />
-        <Stat label={"average"} data={avg} />
-        <Stat label={"positive"} data={(positve) + " %"} />
+
+        <table>
+          <tbody>
+            {stats.map((s) => (<StatisticLine text={s.label} value={s.data} key={s.label} />))}
+            <StatisticLine text={"all"} value={totalCount} />
+            <StatisticLine text={"average"} value={avg} />
+            <StatisticLine text={"positive"} value={(positve) + " %"} />
+          </tbody>
+        </table>
+
       </div>
     );
   }

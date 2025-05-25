@@ -42,9 +42,9 @@ const PersonForm = ({ addPerson }) => {
 }
 
 const Persons = ({ persons, fil, deletePerson }) => {
-  const onClick = () => {
+  const handleDelete = (p) => {
     if (window.confirm(`Delete ${p.name}?`)) {
-      deletePerson(p.id)
+      deletePerson(p)
     }
   }
 
@@ -54,36 +54,61 @@ const Persons = ({ persons, fil, deletePerson }) => {
         .map(p => (
           <p key={p.name}>
             {p.name} {p.number}
-            <button onClick={onClick}>delete</button>
+            <button onClick={() => handleDelete(p)}>delete</button>
           </p>
         ))}
     </>
   )
 }
 
+const Notification = ({ message, isError }) => {
+  if (message === null) {
+    return null
+  }
+
+  return (
+    <div className={isError ? "error" : "noti"}>
+      {message}
+    </div>
+  )
+}
+
 const App = () => {
   const [persons, setPersons] = useState([])
-
   const [fil, setFil] = useState('')
+  const [errorMessage, setErrorMessage] = useState(null)
+  const [notiMessage, setNotiMessage] = useState(null)
 
   const addPerson = ({ newName, newNumber }) => {
     let q = persons.find(p => p.name === newName)
     if (q) { // Existing person
       if (window.confirm(`${q.name} is already in phonebook, replace old number with new one?`)) {
         db.changePerson({ ...q, number: newNumber })
-          .then(changedQ => setPersons(persons.map(p => p.id === q.id ? changedQ : p)))
+          .then(changedQ => {
+            setPersons(persons.map(p => p.id === q.id ? changedQ : p))
+            setNotiMessage(`Changed the phone number of ${q.name}`)
+            setTimeout(() => { setNotiMessage(null) }, 5000)
+          })
       }
     }
     else { // New person
       db.addPerson(newName, newNumber)
         .then(p => {
           setPersons(persons.concat(p))
+          setNotiMessage(`Added ${p.name}`)
+          setTimeout(() => { setNotiMessage(null) }, 5000)
         })
     }
   }
 
-  const deletePerson = (id) => {
-    db.deletePerson(id).then(() => setPersons(persons.filter(p => p.id !== id)))
+  const deletePerson = (p) => {
+    db.deletePerson(p.id)
+      .then(() => setPersons(persons.filter(person => person.id !== p.id)))
+      .catch(error => {
+        setErrorMessage(`Information of '${p.name}' has been already removed from server`)
+        setPersons(persons.filter(person => person.id !== p.id))
+        setTimeout(() => { setErrorMessage(null) }, 5000)
+      })
   }
 
   useEffect(() => {
@@ -93,7 +118,8 @@ const App = () => {
   return (
     <div>
       <h2>Phonebook</h2>
-
+      <Notification message={errorMessage} isError={true} />
+      <Notification message={notiMessage} isError={false} />
       <Filter fil={fil} setFil={setFil} />
 
       <h3>add a new</h3>

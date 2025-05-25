@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import db from './db'
 
 const Filter = ({ fil, setFil }) => {
   const handleFilChange = (event) => {
@@ -40,30 +41,54 @@ const PersonForm = ({ addPerson }) => {
   )
 }
 
-const Persons = ({persons, fil}) => {
+const Persons = ({ persons, fil, deletePerson }) => {
+  const onClick = () => {
+    if (window.confirm(`Delete ${p.name}?`)) {
+      deletePerson(p.id)
+    }
+  }
+
   return (
     <>
       {persons.filter(p => p.name.toLowerCase().includes(fil.toLowerCase()))
-        .map(p => <p key={p.name}>{p.name} {p.number}</p>)}
+        .map(p => (
+          <p key={p.name}>
+            {p.name} {p.number}
+            <button onClick={onClick}>delete</button>
+          </p>
+        ))}
     </>
   )
 }
 
 const App = () => {
-  const [persons, setPersons] = useState([
-    { name: 'Arto Hellas', number: '39-44-5654533' }
-  ])
+  const [persons, setPersons] = useState([])
 
   const [fil, setFil] = useState('')
 
   const addPerson = ({ newName, newNumber }) => {
-    if (persons.find(p => p.name === newName)) {
-      alert(`${newName} is already added to phonebook`)
+    let q = persons.find(p => p.name === newName)
+    if (q) { // Existing person
+      if (window.confirm(`${q.name} is already in phonebook, replace old number with new one?`)) {
+        db.changePerson({ ...q, number: newNumber })
+          .then(changedQ => setPersons(persons.map(p => p.id === q.id ? changedQ : p)))
+      }
     }
-    else {
-      setPersons(persons.concat({ name: newName, number: newNumber }))
+    else { // New person
+      db.addPerson(newName, newNumber)
+        .then(p => {
+          setPersons(persons.concat(p))
+        })
     }
   }
+
+  const deletePerson = (id) => {
+    db.deletePerson(id).then(() => setPersons(persons.filter(p => p.id !== id)))
+  }
+
+  useEffect(() => {
+    db.getAllPerson().then(ps => setPersons(ps))
+  }, [])
 
   return (
     <div>
@@ -75,7 +100,7 @@ const App = () => {
       <PersonForm addPerson={addPerson} />
 
       <h3>Numbers</h3>
-      <Persons persons={persons} fil={fil} />
+      <Persons persons={persons} fil={fil} deletePerson={deletePerson} />
     </div>
   )
 }

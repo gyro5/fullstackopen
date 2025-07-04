@@ -1,6 +1,6 @@
 const express = require('express')
 
-const persons = [
+let persons = [
     {
         "id": "1",
         "name": "Arto Hellas",
@@ -24,6 +24,7 @@ const persons = [
 ]
 
 const app = express()
+app.use(express.json())
 
 app.get('/info', (req, res) => {
     res.send(
@@ -40,11 +41,40 @@ app.get('/api/persons/:id', (req, res) => {
     const id = req.params.id
     const person = persons.find(p => p.id === id)
     if (person) {
-        res.json(person)
+        return res.json(person)
     }
     else {
-        res.status(404).json({error: "Not found"})
+        return res.status(404).json({error: "Not found"})
     }
+})
+
+app.post('/api/persons', (req, res) => {
+    // IMPORTANT: need return to stop doing more response
+    // after errors
+    const body = req.body
+    if (!body.name || !body.number) {
+        return res.status(400).json({error: "missing name or number"})
+    }
+    if (persons.find(p => p.name === body.name)) {
+        return res.status(400).json({error: "name must be unique"})
+    }
+
+    const person = {
+        id: Math.floor(Math.random() * 1000000),
+        name: body.name,
+        number: body.number
+    }
+
+    persons = persons.concat(person)
+
+    res.json(person)
+})
+
+app.delete('/api/persons/:id', (req, res) => {
+    const id = req.params.id
+    persons = persons.filter(p => p.id !== id)
+
+    res.status(204).end()
 })
 
 // Run the app

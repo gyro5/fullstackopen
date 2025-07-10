@@ -25,6 +25,8 @@ let persons = [
 ]
 
 const app = express()
+
+// Morgan logger middleware
 app.use(morgan((tokens, req, res) => {
     let fields = [
         tokens.method(req, res),
@@ -39,6 +41,9 @@ app.use(morgan((tokens, req, res) => {
     return fields.join(' ')
 }))
 app.use(express.json())
+
+// Static React frontend
+app.use(express.static('dist'))
 
 app.get('/info', (req, res) => {
     res.send(

@@ -1,4 +1,5 @@
 const express = require('express')
+const morgan = require('morgan')
 
 let persons = [
     {
@@ -24,6 +25,19 @@ let persons = [
 ]
 
 const app = express()
+app.use(morgan((tokens, req, res) => {
+    let fields = [
+        tokens.method(req, res),
+        tokens.url(req, res),
+        tokens.status(req, res),
+        tokens.res(req, res, 'content-length'), '-',
+        tokens['response-time'](req, res), 'ms'
+    ]
+    if (req.method === 'POST') {
+        fields.push(JSON.stringify(req.body))
+    }
+    return fields.join(' ')
+}))
 app.use(express.json())
 
 app.get('/info', (req, res) => {
@@ -60,7 +74,7 @@ app.post('/api/persons', (req, res) => {
     }
 
     const person = {
-        id: Math.floor(Math.random() * 1000000),
+        id: Math.floor(Math.random() * 1000000).toString(),
         name: body.name,
         number: body.number
     }

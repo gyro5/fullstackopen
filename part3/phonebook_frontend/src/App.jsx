@@ -89,6 +89,10 @@ const App = () => {
             setNotiMessage(`Changed the phone number of ${q.name}`)
             setTimeout(() => { setNotiMessage(null) }, 5000)
           })
+          .catch(err => {
+            setErrorMessage(err.response.data.error)
+            setTimeout(() => { setErrorMessage(null) }, 5000)
+          })
       }
     }
     else { // New person
@@ -98,13 +102,17 @@ const App = () => {
           setNotiMessage(`Added ${p.name}`)
           setTimeout(() => { setNotiMessage(null) }, 5000)
         })
+        .catch(err => {
+          setErrorMessage(err.response.data.error)
+          setTimeout(() => { setErrorMessage(null) }, 5000)
+        })
     }
   }
 
   const deletePerson = (p) => {
     db.deletePerson(p.id)
       .then(() => setPersons(persons.filter(person => person.id !== p.id)))
-      .catch(error => {
+      .catch(() => {
         setErrorMessage(`Information of '${p.name}' has been already removed from server`)
         setPersons(persons.filter(person => person.id !== p.id))
         setTimeout(() => { setErrorMessage(null) }, 5000)

@@ -55,7 +55,7 @@ app.post('/api/persons', (req, res, next) => {
   // IMPORTANT: need return to stop doing more response after errors
   const body = req.body
   if (!body.name || !body.number) {
-    return res.status(400).send({ error: "missing name or number" })
+    return res.status(400).send({ error: 'missing name or number' })
   }
 
   const person = new Person({
@@ -70,7 +70,7 @@ app.post('/api/persons', (req, res, next) => {
 
 app.put('/api/persons/:id', (req, res, next) => {
   if (!req.body.number) {
-    return res.status(400).send({ error: "missing number" })
+    return res.status(400).send({ error: 'missing number' })
   }
 
   Person.findById(req.params.id)

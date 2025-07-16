@@ -3,7 +3,7 @@ const { argv, exit } = require('node:process')
 
 // Check command line args
 if (argv.length !== 3 && argv.length !== 5) {
-  console.log("error: require 1 or 3 argument, got", argv.length)
+  console.log('error: require 1 or 3 argument, got', argv.length)
   exit(1)
 }
 

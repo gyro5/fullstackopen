@@ -9,12 +9,15 @@ blogRouter.get('/', (request, response) => {
   })
 })
 
-blogRouter.post('/', (request, response) => {
+blogRouter.post('/', async (request, response) => {
+  // Blog body will be validated in mongoose model
   const blog = new Blog(request.body)
+  blog.likes = blog.likes || 0
 
-  blog.save().then((result) => {
-    response.status(201).json(result)
-  })
+  // If await throws an error, the errorHandler middleware
+  // will handle it and return 400 (see utils/middleware.js).
+  const result = await blog.save()
+  response.status(201).json(result)
 })
 
 module.exports = blogRouter

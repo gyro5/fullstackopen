@@ -117,6 +117,46 @@ describe('when there is initially some blogs', () => {
       assert.strictEqual(blogsAtEnd2.length, testHelper.initialBlogs.length)
     })
   })
+
+  describe('deletion of a blog', () => {
+    test('succeeds with status code 204 if id is valid', async () => {
+      const blogsAtStart = await testHelper.blogsInDb()
+      const blogToDelete = blogsAtStart[0]
+
+      await api.delete(`/api/blogs/${blogToDelete.id}`).expect(204)
+
+      const blogsAtEnd = await testHelper.blogsInDb()
+
+      const ids = blogsAtEnd.map(n => n.id)
+      assert(!ids.includes(blogToDelete.id))
+
+      assert.strictEqual(blogsAtEnd.length, testHelper.initialBlogs.length - 1)
+    })
+  })
+
+  describe('updating a blog', () => {
+    test('succeeds if id is valid', async () => {
+      const blogsAtStart = await testHelper.blogsInDb()
+      const blogToUpdate = blogsAtStart[0]
+
+      await api
+        .put(`/api/blogs/${blogToUpdate.id}`)
+        .send({likes: 15})
+        .expect(200)
+
+      const blogsAtEnd = await testHelper.blogsInDb()
+      const blogAfterUpdate = blogsAtEnd.filter(b => b.id === blogToUpdate.id)[0]
+
+      assert.strictEqual(blogAfterUpdate.likes, 15)
+    })
+
+    test('fails with status 400 if id is invalid', async () => {
+      await api
+        .put(`/api/blogs/${testHelper.nonExistingId()}`)
+        .send({likes: 15})
+        .expect(400)
+    })
+  })
 })
 
 after(async () => {

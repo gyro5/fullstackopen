@@ -1,12 +1,12 @@
 const blogRouter = require('express').Router()
 const Blog = require('../models/blog')
+const User = require('../models/user')
 
 // Router for '/api/blogs' route
 
-blogRouter.get('/', (request, response) => {
-  Blog.find({}).then((blogs) => {
-    response.json(blogs)
-  })
+blogRouter.get('/', async (request, response) => {
+  const blogs = await Blog.find({}).populate('user', { username: 1, name: 1, id: 1 })
+  response.json(blogs)
 })
 
 blogRouter.post('/', async (request, response) => {
@@ -14,9 +14,20 @@ blogRouter.post('/', async (request, response) => {
   const blog = new Blog(request.body)
   blog.likes = blog.likes || 0
 
+  // TODO will change id to jwt later
+  const user = await User.find({})
+  if (!user) {
+    return response.status(400).json({ error: 'UserId missing or not valid' })
+  }
+
+  blog.user = user._id
   // If await throws an error, the errorHandler middleware
   // will handle it and return 400 (see utils/middleware.js).
   const result = await blog.save()
+
+  user.blogs = user.blogs.concat(result._id)
+  await user.save()
+
   response.status(201).json(result)
 })
 
